@@ -4,8 +4,8 @@ This web component will retrieve and display a new random Flickr image every 5 s
 
 ## Running the code
 
-- Deploy this project into an accessible folder anywhere on your web server
-- The server is required to serve only static files at this point
+- To run this exercise, you will need a local (or remote) web server, server is required to serve only static files at this point
+- Deploy this project into an accessible folder anywhere on your server
 - Point your browser to the appropriate path
 - Currently only Google Chrome is tested, but polyfill (webcomponents.js) is present
 - This exercise imports two libraries from CDN (webcomponents.js, jQuery), which means you have to be online to run the project
