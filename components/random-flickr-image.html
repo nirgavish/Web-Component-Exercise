@@ -1,0 +1,131 @@
+<template>
+    <style>
+      :host {
+        background-color:#000;
+        /* component will cover it's container completely */
+        display: block;
+        position:absolute;
+        top:0; right:0; bottom:0; left:0;
+        color:#fff;
+        font-family:tahoma;
+      }
+
+      :host div.bg{
+        display: block;
+        position:absolute;
+        top:0; right:0; bottom:0; left:0;
+        opacity:0.3;
+        -webkit-filter: blur(25px);
+        
+        /* the background is set to cover the entire component */
+        background-position:center;
+        background-size:cover;
+        background-repeat: no-repeat;
+      }
+
+      :host img{
+        border:9px solid #fff;
+        border-radius:8px;
+        position:absolute;
+        right:50%;
+        top:25%;
+      }
+
+      :host div.credits{
+        width:240px;
+        position:absolute;
+        padding:0 0 0 1em;
+        left:50%;
+        top:25%;
+      }
+      :host div h1{
+        margin:0;
+        max-height:5em;
+        overflow:hidden;
+      }
+    </style>
+
+    <div class="bg"></div>
+
+    <img/>
+
+    <div class="credits">
+        <h1></h1>
+        <small></small>
+    </div>
+</template>
+
+<script>
+(function() {
+    "use strict";
+    
+    // Load the template from <template> tag
+    var template = document.currentScript.ownerDocument.querySelector('template').content;
+    
+    // Creates an object based in the HTML Element prototype
+    var element = Object.create(HTMLElement.prototype);
+
+    // Fires when an instance of the element is created
+    element.createdCallback = function() {
+        
+        var shadow_root = this.createShadowRoot();
+
+        // Clone template into shadow root
+        shadow_root.appendChild(document.importNode(template, true));
+        
+        // Local function to consume the flickr public feed and randomly display an image
+        var display_random_flickr_image = function(){
+            
+            // Consume flickr API public photo feed
+            $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?format=json&jsoncallback=?", function(data) {
+                // Choose random image from public feed
+                var random_image = data.items[Math.floor(Math.random()*data.items.length)];
+                
+                
+                var img_tag = shadow_root.querySelector('img');
+                // Place it's URL in the img src
+                img_tag.src = random_image.media.m;
+                //shadow_root.style.backgroundImage = random_image.media.m;
+                
+                // Display background, title and credits, but only after image is fully loaded
+                img_tag.onload = function(){
+                    // Set image angle
+                    img_tag.style['-webkit-transform'] = 'rotate('+(Math.floor(Math.random()*10)-5)+'deg)';
+                    
+                    // Set backgorund image
+                    shadow_root.querySelector('div.bg').style.backgroundImage = 'url("'+random_image.media.m+'")';
+
+                    // Set title and credits
+                    shadow_root.querySelector('div.credits h1').textContent = (random_image.title.trim()=='')?'Untitled':random_image.title;
+                    shadow_root.querySelector('div.credits small').textContent = 'By ' + random_image.author.replace(/nobody@flickr.com \(|\)/gi,'');
+
+                    // Go Again in 5 seconds
+                    setTimeout(display_random_flickr_image, 5000);
+                }
+                
+                // Just making sure if anything bad happens while loading, we'll go again
+                img_tag.onerror = function(){
+                    display_random_flickr_image();
+                }
+            }).error(function() {
+                // Making sure that function runs again after any kind of loading failure of JSON data
+                display_random_flickr_image();
+            });
+        }
+        
+        // start randomly showing images
+        display_random_flickr_image();
+    };
+
+    // Fires when an instance was inserted into the document
+    element.attachedCallback = function() {};
+
+    // Fires when an instance was removed from the document
+    element.detachedCallback = function() {};
+
+    // Registers custom element
+    document.registerElement('random-flickr-image', {
+        prototype: element
+    });
+}());
+</script>
